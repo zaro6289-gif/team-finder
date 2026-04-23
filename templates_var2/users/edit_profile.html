@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <h2 class="form-title">Редактирование профиля</h2>
+    <form method="post" enctype="multipart/form-data" class="profile-edit-form" id="profile-form">
+        {% csrf_token %}
+
+        <div class="avatar-upload">
+            <div class="avatar-preview">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Аватар" id="avatar-preview-img">
+                {% else %}
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" id="avatar-preview-img">
+                {% endif %}
+                <div class="overlay">
+                    <button type="button" id="change-avatar-btn">Заменить</button>
+                </div>
+            </div>
+            <input type="file" name="avatar" id="id_avatar" style="display: none;" accept="image/*">
+        </div>
+
+        <div class="form-row">
+            <div class="form-field">
+                <label for="id_name">Имя</label>
+                <input type="text" name="name" id="id_name" value="{{ user.name }}" required>
+            </div>
+            <div class="form-field">
+                <label for="id_surname">Фамилия</label>
+                <input type="text" name="surname" id="id_surname" value="{{ user.surname }}" required>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label for="id_about">О себе</label>
+            <textarea name="about" id="id_about" rows="4">{{ user.about|default:'' }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-field">
+                <label for="id_phone">Телефон</label>
+                <input type="tel" name="phone" id="id_phone" value="{{ user.phone|default:'' }}">
+            </div>
+            <div class="form-field">
+                <label for="id_github_url">GitHub URL</label>
+                <input type="url" name="github_url" id="id_github_url" value="{{ user.github_url|default:'' }}">
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="form-errors">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="/users/{{ user.id }}" class="cancel-button">Отмена</a>
+            <button type="submit" class="save-button">Сохранить</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('change-avatar-btn')?.addEventListener('click', function() {
+        document.getElementById('id_avatar').click();
+    });
+    
+    document.getElementById('id_avatar')?.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatar-preview-img');
+                preview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}
