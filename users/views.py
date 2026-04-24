@@ -68,7 +68,7 @@ def edit_profile(request):
 
 
 def user_list(request):
-    users = User.objects.all().order_by("-created_at")
+    users = User.objects.prefetch_related('skills').order_by("-created_at")
     active_filter = request.GET.get("filter")
     active_skill = request.GET.get("skill")
 
@@ -76,12 +76,12 @@ def user_list(request):
         if active_filter == "owners-of-participating-projects":
             users = User.objects.filter(
                 owned_projects__participants=request.user
-            ).distinct()
+            ).distinct().prefetch_related('skills')
         elif active_filter == "participants-of-my-projects":
             my_projects = Project.objects.filter(owner=request.user)
             users = User.objects.filter(
                 participated_projects__in=my_projects
-            ).distinct()
+            ).distinct().prefetch_related('skills')
 
     if active_skill:
         users = users.filter(skills__name=active_skill)

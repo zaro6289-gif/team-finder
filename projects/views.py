@@ -9,16 +9,19 @@ from django.core.paginator import Paginator
 
 
 def project_list(request):
-    projects = Project.objects.all()
+    projects = Project.objects.select_related('owner').prefetch_related('participants').all()
     paginator = Paginator(projects, 12)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     return render(request, 'projects/project_list.html', {'projects': page_obj})
 
 
 def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    return render(request, "projects/project-details.html", {"project": project})
+    project = get_object_or_404(
+        Project.objects.select_related('owner').prefetch_related('participants'),
+        id=project_id
+    )
+    return render(request, 'projects/project-details.html', {'project': project})
 
 
 @login_required
@@ -62,12 +65,6 @@ def edit_project(request, project_id):
         "projects/create-project.html",
         {"form": form, "is_edit": True, "project": project},
     )
-
-
-@login_required
-def favorite_projects(request):
-    favorites = []
-    return render(request, "projects/favorite_projects.html", {"projects": favorites})
 
 
 @require_POST
