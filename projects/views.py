@@ -3,13 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
+
 from .models import Project
 from .forms import ProjectForm
-from django.core.paginator import Paginator
 
 
 def project_list(request):
-    projects = Project.objects.select_related('owner').prefetch_related('participants').all()
+    projects = Project.objects.select_related('owner').prefetch_related(
+        'participants'
+    ).all()
     paginator = Paginator(projects, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -26,20 +29,27 @@ def project_detail(request, project_id):
 
 @login_required
 def create_project(request):
-    if request.method == "POST":
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.owner = request.user
-            project.save()
-            project.participants.add(request.user)
-            messages.success(request, "Проект успешно создан!")
-            return redirect("projects:detail", project_id=project.id)
-    else:
+    if request.method != "POST":
         form = ProjectForm()
+        return render(
+            request,
+            "projects/create-project.html",
+            {"form": form, "is_edit": False}
+        )
+
+    form = ProjectForm(request.POST or None)
+    if form.is_valid():
+        project = form.save(commit=False)
+        project.owner = request.user
+        project.save()
+        project.participants.add(request.user)
+        messages.success(request, "Проект успешно создан!")
+        return redirect("projects:detail", project_id=project.id)
 
     return render(
-        request, "projects/create-project.html", {"form": form, "is_edit": False}
+        request,
+        "projects/create-project.html",
+        {"form": form, "is_edit": False}
     )
 
 
@@ -51,19 +61,24 @@ def edit_project(request, project_id):
         messages.error(request, "Вы не можете редактировать этот проект")
         return redirect("projects:detail", project_id=project_id)
 
-    if request.method == "POST":
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Проект успешно обновлен!")
-            return redirect("projects:detail", project_id=project.id)
-    else:
+    if request.method != "POST":
         form = ProjectForm(instance=project)
+        return render(
+            request,
+            "projects/create-project.html",
+            {"form": form, "is_edit": True, "project": project}
+        )
+
+    form = ProjectForm(request.POST or None, instance=project)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Проект успешно обновлен!")
+        return redirect("projects:detail", project_id=project.id)
 
     return render(
         request,
         "projects/create-project.html",
-        {"form": form, "is_edit": True, "project": project},
+        {"form": form, "is_edit": True, "project": project}
     )
 
 
@@ -89,8 +104,13 @@ def toggle_participate(request, project_id):
 @login_required
 def complete_project(request, project_id):
     project = get_object_or_404(Project, id=project_id, owner=request.user)
+
     if project.status != 'open':
-        return JsonResponse({'status': 'error', 'message': 'Проект уже завершён'}, status=400)
+        return JsonResponse(
+            {'status': 'error', 'message': 'Проект уже завершён'},
+            status=400
+        )
+
     project.status = 'closed'
     project.save()
     return JsonResponse({'status': 'ok', 'project_status': 'closed'})

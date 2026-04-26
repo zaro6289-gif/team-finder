@@ -1,28 +1,54 @@
 from django.db import models
 from django.conf import settings
 
+PROJECT_NAME_MAX_LENGTH = 200
+
 
 class Project(models.Model):
     class Status(models.TextChoices):
         OPEN = "open", "Открыт"
         CLOSED = "closed", "Закрыт"
 
-    name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    name = models.CharField(
+        max_length=PROJECT_NAME_MAX_LENGTH,
+        verbose_name="Название"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Описание"
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="owned_projects",
+        verbose_name="Автор",
     )
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="participated_projects", blank=True
+        settings.AUTH_USER_MODEL,
+        related_name="participated_projects",
+        blank=True,
+        verbose_name="Участники",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    github_url = models.URLField(blank=True, null=True)
-    status = models.CharField(max_length=6, choices=Status.choices, default=Status.OPEN)
-
-    def __str__(self):
-        return self.name
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+    github_url = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name="GitHub"
+    )
+    status = models.CharField(
+        max_length=6,
+        choices=Status.choices,
+        default=Status.OPEN,
+        verbose_name="Статус",
+    )
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "Проект"
+        verbose_name_plural = "Проекты"
+
+    def __str__(self):
+        return self.name

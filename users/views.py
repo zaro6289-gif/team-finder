@@ -11,31 +11,35 @@ from projects.models import Project
 
 
 def register(request):
-    if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("projects:list")
-    else:
+    if request.method != "POST":
         form = RegisterForm()
+        return render(request, "users/register.html", {"form": form})
+
+    form = RegisterForm(request.POST or None)
+    if form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("projects:list")
+
     return render(request, "users/register.html", {"form": form})
 
 
 def user_login(request):
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data.get("email")
-            password = form.cleaned_data.get("password")
-            user = authenticate(request, email=email, password=password)
-            if user:
-                login(request, user)
-                return redirect("projects:list")
-            else:
-                messages.error(request, "Неверный email или пароль")
-    else:
+    if request.method != "POST":
         form = LoginForm()
+        return render(request, "users/login.html", {"form": form})
+
+    form = LoginForm(request.POST or None)
+    if form.is_valid():
+        email = form.cleaned_data.get("email")
+        password = form.cleaned_data.get("password")
+        user = authenticate(request, email=email, password=password)
+        if user:
+            login(request, user)
+            return redirect("projects:list")
+        else:
+            messages.error(request, "Неверный email или пароль")
+
     return render(request, "users/login.html", {"form": form})
 
 
@@ -47,28 +51,41 @@ def user_logout(request):
 
 def user_detail(request, user_id):
     user_obj = get_object_or_404(
-        User.objects.prefetch_related("skills", "owned_projects"), id=user_id
+        User.objects.prefetch_related("skills", "owned_projects"),
+        id=user_id
     )
     return render(request, "users/user-details.html", {"user": user_obj})
 
 
 @login_required
 def edit_profile(request):
-    if request.method == "POST":
-        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Профиль обновлен")
-            return redirect("users:detail", user_id=request.user.id)
-    else:
+    if request.method != "POST":
         form = EditProfileForm(instance=request.user)
+        return render(
+            request,
+            "users/edit_profile.html",
+            {"form": form, "user": request.user}
+        )
+
+    form = EditProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=request.user
+    )
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Профиль обновлен")
+        return redirect("users:detail", user_id=request.user.id)
+
     return render(
-        request, "users/edit_profile.html", {"form": form, "user": request.user}
+        request,
+        "users/edit_profile.html",
+        {"form": form, "user": request.user}
     )
 
 
 def user_list(request):
-    users = User.objects.prefetch_related('skills').order_by("-created_at")
+    users = User.objects.prefetch_related('skills')
     active_filter = request.GET.get("filter")
     active_skill = request.GET.get("skill")
 
@@ -100,13 +117,16 @@ def user_list(request):
 
 @login_required
 def change_password(request):
-    if request.method == "POST":
-        new_password = request.POST.get("new_password1")
-        if new_password:
-            request.user.password = make_password(new_password)
-            request.user.save()
-            messages.success(request, "Пароль изменен")
-            return redirect("users:detail", user_id=request.user.id)
+    if request.method != "POST":
+        return render(request, "users/change_password.html")
+
+    new_password = request.POST.get("new_password1")
+    if new_password:
+        request.user.password = make_password(new_password)
+        request.user.save()
+        messages.success(request, "Пароль изменен")
+        return redirect("users:detail", user_id=request.user.id)
+
     return render(request, "users/change_password.html")
 
 
@@ -123,15 +143,19 @@ def skill_autocomplete(request):
 def add_user_skill(request, user_id):
     if request.user.id != user_id:
         return JsonResponse({"error": "Нет прав"}, status=403)
+
     user = get_object_or_404(User, id=user_id)
     skill_id = request.POST.get("skill_id")
     skill_name = request.POST.get("name")
+
     if skill_id:
         skill = get_object_or_404(Skill, id=skill_id)
     else:
         skill, created = Skill.objects.get_or_create(name=skill_name)
+
     if skill in user.skills.all():
         return JsonResponse({"added": False, "message": "Навык уже есть"})
+
     user.skills.add(skill)
     return JsonResponse(
         {
@@ -147,6 +171,7 @@ def add_user_skill(request, user_id):
 def remove_user_skill(request, user_id, skill_id):
     if request.user.id != user_id:
         return JsonResponse({"error": "Нет прав"}, status=403)
+
     user = get_object_or_404(User, id=user_id)
     skill = get_object_or_404(Skill, id=skill_id)
     user.skills.remove(skill)
