@@ -51,8 +51,7 @@ def user_logout(request):
 
 def user_detail(request, user_id):
     user_obj = get_object_or_404(
-        User.objects.prefetch_related("skills", "owned_projects"),
-        id=user_id
+        User.objects.prefetch_related("skills", "owned_projects"), id=user_id
     )
     return render(request, "users/user-details.html", {"user": user_obj})
 
@@ -62,15 +61,11 @@ def edit_profile(request):
     if request.method != "POST":
         form = EditProfileForm(instance=request.user)
         return render(
-            request,
-            "users/edit_profile.html",
-            {"form": form, "user": request.user}
+            request, "users/edit_profile.html", {"form": form, "user": request.user}
         )
 
     form = EditProfileForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=request.user
+        request.POST or None, request.FILES or None, instance=request.user
     )
     if form.is_valid():
         form.save()
@@ -78,27 +73,29 @@ def edit_profile(request):
         return redirect("users:detail", user_id=request.user.id)
 
     return render(
-        request,
-        "users/edit_profile.html",
-        {"form": form, "user": request.user}
+        request, "users/edit_profile.html", {"form": form, "user": request.user}
     )
 
 
 def user_list(request):
-    users = User.objects.prefetch_related('skills')
+    users = User.objects.prefetch_related("skills")
     active_filter = request.GET.get("filter")
     active_skill = request.GET.get("skill")
 
     if request.user.is_authenticated:
         if active_filter == "owners-of-participating-projects":
-            users = User.objects.filter(
-                owned_projects__participants=request.user
-            ).distinct().prefetch_related('skills')
+            users = (
+                User.objects.filter(owned_projects__participants=request.user)
+                .distinct()
+                .prefetch_related("skills")
+            )
         elif active_filter == "participants-of-my-projects":
             my_projects = Project.objects.filter(owner=request.user)
-            users = User.objects.filter(
-                participated_projects__in=my_projects
-            ).distinct().prefetch_related('skills')
+            users = (
+                User.objects.filter(participated_projects__in=my_projects)
+                .distinct()
+                .prefetch_related("skills")
+            )
 
     if active_skill:
         users = users.filter(skills__name=active_skill)

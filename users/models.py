@@ -15,9 +15,7 @@ ABOUT_MAX_LENGTH = 256
 
 class Skill(models.Model):
     name = models.CharField(
-        max_length=NAME_MAX_LENGTH,
-        unique=True,
-        verbose_name="Название"
+        max_length=NAME_MAX_LENGTH, unique=True, verbose_name="Название"
     )
 
     class Meta:
@@ -36,56 +34,27 @@ class UserManager(BaseUserManager):
 
         email = self.normalize_email(email)
         user = self.model(
-            email=email,
-            name=name,
-            surname=surname,
-            phone=phone,
-            **extra_fields
+            email=email, name=name, surname=surname, phone=phone, **extra_fields
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(
-        self,
-        email,
-        name,
-        surname,
-        phone,
-        password=None,
-        **extra_fields
+        self, email, name, surname, phone, password=None, **extra_fields
     ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
-        return self.create_user(
-            email,
-            name,
-            surname,
-            phone,
-            password,
-            **extra_fields
-        )
+        return self.create_user(email, name, surname, phone, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(
-        unique=True,
-        verbose_name="Email"
-    )
-    name = models.CharField(
-        max_length=NAME_MAX_LENGTH,
-        verbose_name="Имя"
-    )
-    surname = models.CharField(
-        max_length=NAME_MAX_LENGTH,
-        verbose_name="Фамилия"
-    )
+    email = models.EmailField(unique=True, verbose_name="Email")
+    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name="Имя")
+    surname = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name="Фамилия")
     avatar = models.ImageField(
-        upload_to="avatars/",
-        blank=True,
-        null=True,
-        verbose_name="Аватар"
+        upload_to="avatars/", blank=True, null=True, verbose_name="Аватар"
     )
     phone = models.CharField(
         max_length=PHONE_MAX_LENGTH,
@@ -98,33 +67,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         ],
         verbose_name="Телефон",
     )
-    github_url = models.URLField(
-        blank=True,
-        null=True,
-        verbose_name="GitHub"
-    )
+    github_url = models.URLField(blank=True, null=True, verbose_name="GitHub")
     about = models.TextField(
-        max_length=ABOUT_MAX_LENGTH,
-        blank=True,
-        verbose_name="О себе"
+        max_length=ABOUT_MAX_LENGTH, blank=True, verbose_name="О себе"
     )
     skills = models.ManyToManyField(
-        Skill,
-        related_name="users",
-        blank=True,
-        verbose_name="Навыки"
+        Skill, related_name="users", blank=True, verbose_name="Навыки"
     )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name="Активен"
-    )
-    is_staff = models.BooleanField(
-        default=False,
-        verbose_name="Персонал"
-    )
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+    is_staff = models.BooleanField(default=False, verbose_name="Персонал")
     created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата регистрации"
+        auto_now_add=True, verbose_name="Дата регистрации"
     )
 
     USERNAME_FIELD = "email"

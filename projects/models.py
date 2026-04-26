@@ -9,14 +9,8 @@ class Project(models.Model):
         OPEN = "open", "Открыт"
         CLOSED = "closed", "Закрыт"
 
-    name = models.CharField(
-        max_length=PROJECT_NAME_MAX_LENGTH,
-        verbose_name="Название"
-    )
-    description = models.TextField(
-        blank=True,
-        verbose_name="Описание"
-    )
+    name = models.CharField(max_length=PROJECT_NAME_MAX_LENGTH, verbose_name="Название")
+    description = models.TextField(blank=True, verbose_name="Описание")
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -29,15 +23,8 @@ class Project(models.Model):
         blank=True,
         verbose_name="Участники",
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания"
-    )
-    github_url = models.URLField(
-        blank=True,
-        null=True,
-        verbose_name="GitHub"
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    github_url = models.URLField(blank=True, null=True, verbose_name="GitHub")
     status = models.CharField(
         max_length=6,
         choices=Status.choices,
