@@ -1,8 +1,9 @@
-import random
 import colorsys
+import random
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+
 from django.core.files.base import ContentFile
+from PIL import Image, ImageDraw, ImageFont
 
 
 def generate_avatar(name, email):
