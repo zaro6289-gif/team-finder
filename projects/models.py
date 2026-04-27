@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 PROJECT_NAME_MAX_LENGTH = 200
+STATUS_MAX_LENGTH = 6
 
 
 class Project(models.Model):
@@ -26,7 +27,7 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     github_url = models.URLField(blank=True, null=True, verbose_name="GitHub")
     status = models.CharField(
-        max_length=6,
+        max_length=STATUS_MAX_LENGTH,
         choices=Status.choices,
         default=Status.OPEN,
         verbose_name="Статус",

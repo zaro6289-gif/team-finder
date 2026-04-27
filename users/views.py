@@ -11,6 +11,7 @@ from .forms import EditProfileForm, LoginForm, RegisterForm
 from .models import Skill, User
 
 SKILLS_AUTOCOMPLETE_LIMIT = 10
+MIN_QUERY_LENGTH = 1
 
 
 def register(request):
@@ -132,7 +133,7 @@ def change_password(request):
 
 def skill_autocomplete(request):
     q = request.GET.get("q", "")
-    if len(q) < 1:
+    if len(q) < MIN_QUERY_LENGTH:
         return JsonResponse([], safe=False)
     skills = Skill.objects.filter(name__istartswith=q)[:SKILLS_AUTOCOMPLETE_LIMIT]
     data = [{"id": skill.id, "name": skill.name} for skill in skills]

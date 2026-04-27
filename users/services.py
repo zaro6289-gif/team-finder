@@ -5,9 +5,12 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
 
+AVATAR_SIZE = 200
+FONT_SIZE = 100
+
 
 def generate_avatar(name, email):
-    size = 200
+    size = AVATAR_SIZE
     hue = random.random()
     rgb = tuple(int(x * 255) for x in colorsys.hls_to_rgb(hue, 0.6, 0.5))
 
@@ -17,7 +20,7 @@ def generate_avatar(name, email):
     first_letter = name[0].upper() if name else "?"
 
     try:
-        font = ImageFont.truetype("arial.ttf", 100)
+        font = ImageFont.truetype("arial.ttf", FONT_SIZE)
     except Exception:
         font = ImageFont.load_default()
 
