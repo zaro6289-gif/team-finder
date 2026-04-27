@@ -12,9 +12,7 @@ PROJECTS_PER_PAGE = 12
 
 
 def project_list(request):
-    projects = (
-        Project.objects.select_related("owner").prefetch_related("participants")
-    )
+    projects = Project.objects.select_related("owner").prefetch_related("participants")
     paginator = Paginator(projects, PROJECTS_PER_PAGE)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
@@ -103,7 +101,7 @@ def toggle_participate(request, project_id):
 def complete_project(request, project_id):
     project = get_object_or_404(Project, id=project_id, owner=request.user)
 
-    if project.status !=  Project.Status.OPEN:
+    if project.status != Project.Status.OPEN:
         return JsonResponse(
             {"status": "error", "message": "Проект уже завершён"}, status=400
         )
