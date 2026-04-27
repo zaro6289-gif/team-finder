@@ -8,12 +8,14 @@ from django.views.decorators.http import require_POST
 from .forms import ProjectForm
 from .models import Project
 
+PROJECTS_PER_PAGE = 12
+
 
 def project_list(request):
     projects = (
-        Project.objects.select_related("owner").prefetch_related("participants").all()
+        Project.objects.select_related("owner").prefetch_related("participants")
     )
-    paginator = Paginator(projects, 12)
+    paginator = Paginator(projects, PROJECTS_PER_PAGE)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
     return render(request, "projects/project_list.html", {"projects": page_obj})
@@ -101,11 +103,11 @@ def toggle_participate(request, project_id):
 def complete_project(request, project_id):
     project = get_object_or_404(Project, id=project_id, owner=request.user)
 
-    if project.status != "open":
+    if project.status !=  Project.Status.OPEN:
         return JsonResponse(
             {"status": "error", "message": "Проект уже завершён"}, status=400
         )
 
-    project.status = "closed"
+    project.status = Project.Status.CLOSED
     project.save()
     return JsonResponse({"status": "ok", "project_status": "closed"})

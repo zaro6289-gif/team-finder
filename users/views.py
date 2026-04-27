@@ -10,6 +10,8 @@ from projects.models import Project
 from .forms import EditProfileForm, LoginForm, RegisterForm
 from .models import Skill, User
 
+SKILLS_AUTOCOMPLETE_LIMIT = 10
+
 
 def register(request):
     if request.method != "POST":
@@ -108,7 +110,7 @@ def user_list(request):
             "participants": users,
             "active_filter": active_filter,
             "active_skill": active_skill,
-            "all_skills": Skill.objects.all(),
+            "all_skills": Skill.objects,
         },
     )
 
@@ -132,7 +134,7 @@ def skill_autocomplete(request):
     q = request.GET.get("q", "")
     if len(q) < 1:
         return JsonResponse([], safe=False)
-    skills = Skill.objects.filter(name__istartswith=q)[:10]
+    skills = Skill.objects.filter(name__istartswith=q)[:SKILLS_AUTOCOMPLETE_LIMIT]
     data = [{"id": skill.id, "name": skill.name} for skill in skills]
     return JsonResponse(data, safe=False)
 

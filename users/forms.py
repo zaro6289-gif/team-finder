@@ -21,7 +21,7 @@ class LoginForm(forms.Form):
 
 class EditProfileForm(forms.ModelForm):
     skills = forms.ModelMultipleChoiceField(
-        queryset=Skill.objects.all(),
+        queryset=Skill.objects,
         required=False,
         widget=forms.SelectMultiple(attrs={"class": "skills-select"}),
         label="Навыки",
